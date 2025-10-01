@@ -75,10 +75,13 @@ if uploaded_file is not None:
 
                 # Adiciona as bandas encontradas
                 for i, (f1, f2, f_res) in enumerate(bandas, start=1):
-                    ax.axvspan(f1, f2, color="green", alpha=0.2)
-                    ax.plot(f_res, df_filtrado["S11 (dB)"].min(), "ko")  # marca ressonância
-                    ax.text(f_res, df_filtrado["S11 (dB)"].min() + 1,
-                            f"B{i}", ha="center", color="black")
+                    bw = (f2 - f1) / 1e6
+                    ax.axvspan(f1, f2, color="green", alpha=0.2,
+                               label=f"B{i}: {bw:.2f} MHz ({f_res/1e6:.2f} MHz)")
+
+                    # marca ressonância
+                    f_res_s11 = df_filtrado.loc[df_filtrado["Frequência (Hz)"] == f_res, "S11 (dB)"].values[0]
+                    ax.plot(f_res, f_res_s11, "ko")
 
                 ax.set_xlabel("Frequência (Hz)")
                 ax.set_ylabel("S11 (dB)")
