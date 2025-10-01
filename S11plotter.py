@@ -106,7 +106,7 @@ if uploaded_file is not None:
                     y_pos = y_start - idx*0.05
 
                     # "Res:" com fundo colorido
-                    ax.text(0.02, y_pos, ".", fontsize=9, ha="left", va="center",
+                    ax.text(0.02, y_pos, " ", fontsize=9, ha="left", va="center",
                             transform=ax.transAxes,
                             bbox=dict(facecolor=cor, edgecolor='none', alpha=0.5, boxstyle='round,pad=0.2'))
 
