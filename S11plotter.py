@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import StringIO
-import matplotlib.patches as mpatches
+from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
 
 st.title("Analisador de Antenas - S11 x Frequência")
 
@@ -83,15 +84,18 @@ if uploaded_file is not None:
                 # Gráfico
                 fig, ax = plt.subplots(figsize=(10, 6))
                 freq_mhz = df_filtrado["Frequência (Hz)"] / 1e6
-                ax.plot(freq_mhz, df_filtrado["S11 (dB)"], label="S11")
-                ax.axhline(-10, color="black", linestyle="--", label="-10 dB")
+                ax.plot(freq_mhz, df_filtrado["S11 (dB)"], color="blue", lw=2)
+                ax.axhline(-10, color="black", lw=1, linestyle="--")
 
                 # cores para as bandas
-                cores = ["red", "blue", "green", "yellow", "cyan", "magenta", "orange", "purple"]
+                cores = ["red", "blue", "green", "orange", "cyan", "magenta", "yellow", "purple"]
 
-                # Legenda apenas S11 e -10 dB
-                ax.legend(handles=[ax.get_lines()[0], mpatches.Patch(color="black", label="-10 dB")],
-                          loc="upper right")
+                # Legenda apenas S11 e -10 dB com linha tracejada
+                legend_elements = [
+                    Line2D([0], [0], color='blue', lw=2, label='S11'),
+                    Line2D([0], [0], color='black', lw=1, linestyle='--', label='-10 dB')
+                ]
+                ax.legend(handles=legend_elements, loc='upper right')
 
                 # Inserir informações das bandas abaixo do eixo X
                 y_start = -0.15
@@ -100,10 +104,10 @@ if uploaded_file is not None:
                     largura = (f2 - f1)/1e6
                     bw_norm = (f2 - f1) / f_res * 100
                     texto = f"{bw_norm:.1f}% BW, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz"
-                    # Retângulo colorido junto do texto
-                    ax.text(0, y_start - idx*0.05, "  " + texto, fontsize=9, ha="left", va="top",
-                            transform=ax.transAxes,
-                            bbox=dict(facecolor=cor, edgecolor=cor, boxstyle="square,pad=0.2"))
+                    
+                    # Desenhar retângulo pequeno ao lado do texto
+                    ax.text(0.02, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)
+                    ax.add_patch(Rectangle((0, y_start - idx*0.05 - 0.01), 0.015, 0.02, transform=ax.transAxes, color=cor))
 
                 ax.set_xlabel("Frequência (MHz)")
                 ax.set_ylabel("S11 (dB)")
@@ -112,3 +116,15 @@ if uploaded_file is not None:
                 ax.grid(True)
 
                 st.pyplot(fig)
+
+                # Tabela das bandas
+                if bandas:
+                    st.success("Faixas de ressonância encontradas:")
+                    for i, (f1, f2, f_res) in enumerate(bandas, start=1):
+                        bw_norm = (f2 - f1) / f_res * 100
+                        st.write(
+                            f"**Banda {i}:** {bw_norm:.1f}% BW "
+                            f"(de {f1/1e6:.3f} a {f2/1e6:.3f} MHz) | "
+                            f"Largura: {(f2-f1)/1e6:.2f} MHz | "
+                            f"Ressonância: {f_res/1e6:.3f} MHz"
+                        )
