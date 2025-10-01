@@ -114,7 +114,7 @@ if uploaded_file is not None:
 
                     # restante do texto sem fundo
                     ax.text(0.03, y_pos,
-                            f"Ressonância: {f_res/1e6:.2f} MHz, BW: {largura:.2f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)",
+                            f"Ressonância: {f_res/1e6:.2f} MHz, BW: {largura:.2f} MHz ({f1/1e6:.1f} a {f2/1e6:.1f} MHz, {bw_norm:.1f}%)",
                             fontsize=9, ha="left", va="center", transform=ax.transAxes)
 
                 ax.set_xlabel("Frequência (MHz)")
