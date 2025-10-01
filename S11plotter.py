@@ -135,7 +135,8 @@ if uploaded_file is not None:
                     bw_norm = (f2 - f1) / f_res * 100
                     texto = f"Res: {f_res/1e6:.2f} MHz, BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)"
                     
-                    
+                 # Desenhar retângulo pequeno ao lado do texto
+                    ax.text(0.02, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)   
 
 
                 st.pyplot(fig)
