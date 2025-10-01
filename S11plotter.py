@@ -53,8 +53,14 @@ if uploaded_file is not None:
             titulo = st.text_input("Título do gráfico", value="S11 em função da Frequência")
 
             # Filtrar dados
-            df_filtrado = df[(df["Frequência (Hz)"] >= min_freq_mhz*1e6) & (df["Frequência (Hz)"] <= max_freq_mhz*1e6)]
-            df_filtrado = df_filtrado[(df_filtrado["S11 (dB)"] >= min_s11) & (df_filtrado["S11 (dB)"] <= max_s11)]
+            df_filtrado = df[
+                (df["Frequência (Hz)"] >= min_freq_mhz*1e6) &
+                (df["Frequência (Hz)"] <= max_freq_mhz*1e6)
+            ]
+            df_filtrado = df_filtrado[
+                (df_filtrado["S11 (dB)"] >= min_s11) &
+                (df_filtrado["S11 (dB)"] <= max_s11)
+            ]
 
             if df_filtrado.empty:
                 st.warning("Nenhum dado encontrado com os filtros aplicados.")
@@ -90,14 +96,14 @@ if uploaded_file is not None:
                 # cores para as bandas
                 cores = ["red", "blue", "green", "orange", "cyan", "magenta", "yellow", "purple"]
 
-                # Legenda apenas S11 e -10 dB com linha tracejada
+                # Legenda S11 e -10 dB
                 legend_elements = [
                     Line2D([0], [0], color='blue', lw=2, label='S11'),
                     Line2D([0], [0], color='black', lw=1, linestyle='--', label='-10 dB')
                 ]
                 ax.legend(handles=legend_elements, loc='upper right')
 
-                # Inserir informações das bandas abaixo do eixo X
+                # Inserir informações das bandas abaixo do eixo X com retângulos pequenos
                 y_start = -0.15
                 for idx, (f1, f2, f_res) in enumerate(bandas):
                     cor = cores[idx % len(cores)]
@@ -106,8 +112,8 @@ if uploaded_file is not None:
                     texto = f"{bw_norm:.1f}% BW, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz"
                     
                     # Desenhar retângulo pequeno ao lado do texto
-                    ax.text(0.02, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)
-                    ax.add_patch(Rectangle((0, y_start - idx*0.05 - 0.01), 0.015, 0.02, transform=ax.transAxes, color=cor))
+                    ax.text(0.03, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)
+                    ax.add_patch(Rectangle((0.01, y_start - idx*0.05 - 0.008), 0.015, 0.016, transform=ax.transAxes, color=cor))
 
                 ax.set_xlabel("Frequência (MHz)")
                 ax.set_ylabel("S11 (dB)")
