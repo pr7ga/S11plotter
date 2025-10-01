@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import StringIO
+import matplotlib.cm as cm
+import numpy as np
 
 st.title("Analisador de Antenas - S11 x Frequência")
 
@@ -73,15 +75,12 @@ if uploaded_file is not None:
                 ax.plot(df_filtrado["Frequência (Hz)"], df_filtrado["S11 (dB)"], label="S11")
                 ax.axhline(-10, color="red", linestyle="--", label="-10 dB")
 
-                # Adiciona as bandas encontradas
-                for i, (f1, f2, f_res) in enumerate(bandas, start=1):
-                    bw = (f2 - f1) / 1e6
-                    ax.axvspan(f1, f2, color="green", alpha=0.2,
-                               label=f"B{i}: {bw:.2f} MHz ({f_res/1e6:.2f} MHz)")
+                # cores diferentes para cada banda
+                colors = cm.get_cmap('tab10', len(bandas))
 
-                    # marca ressonância
-                    f_res_s11 = df_filtrado.loc[df_filtrado["Frequência (Hz)"] == f_res, "S11 (dB)"].values[0]
-                    ax.plot(f_res, f_res_s11, "ko")
+                for i, (f1, f2, f_res) in enumerate(bandas, start=1):
+                    ax.axvspan(f1, f2, color=colors(i-1), alpha=0.3,
+                               label=f"B{i}: {((f2-f1)/f_res)*100:.1f}% BW")
 
                 ax.set_xlabel("Frequência (Hz)")
                 ax.set_ylabel("S11 (dB)")
@@ -94,9 +93,9 @@ if uploaded_file is not None:
                 if bandas:
                     st.success("Faixas de ressonância encontradas:")
                     for i, (f1, f2, f_res) in enumerate(bandas, start=1):
-                        bw = f2 - f1
+                        bw_norm = (f2 - f1) / f_res * 100
                         st.write(
-                            f"**Banda {i}:** {bw/1e6:.3f} MHz "
+                            f"**Banda {i}:** {bw_norm:.2f}% BW "
                             f"(de {f1/1e6:.3f} a {f2/1e6:.3f} MHz) | "
                             f"Ressonância: {f_res/1e6:.3f} MHz"
                         )
