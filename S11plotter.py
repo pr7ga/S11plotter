@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from io import StringIO
+from io import StringIO, BytesIO
 from matplotlib.lines import Line2D
 
 st.title("Analisador de Antenas - S11 x Frequência")
@@ -110,8 +110,6 @@ if uploaded_file is not None:
                             transform=ax.transAxes,
                             bbox=dict(facecolor=cor, edgecolor='none', alpha=0.5, boxstyle='round,pad=0.2'))
 
-
-
                     # restante do texto sem fundo
                     ax.text(0.03, y_pos,
                             f"Ressonância: {f_res/1e6:.2f} MHz, BW: {largura:.2f} MHz ({f1/1e6:.1f} a {f2/1e6:.1f} MHz, {bw_norm:.1f}%)",
@@ -131,3 +129,24 @@ if uploaded_file is not None:
                 ax.legend(handles=legend_elements, loc='lower right')
 
                 st.pyplot(fig)
+
+                # --- Botões de download ---
+                # Gráfico em PNG
+                buf = BytesIO()
+                fig.savefig(buf, format="png", bbox_inches='tight')
+                buf.seek(0)
+                st.download_button(
+                    label="Baixar gráfico (PNG)",
+                    data=buf,
+                    file_name=f"{titulo}.png",
+                    mime="image/png"
+                )
+
+                # Dados em CSV
+                csv_buf = df_filtrado.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="Baixar dados filtrados (CSV)",
+                    data=csv_buf,
+                    file_name=f"{titulo}.csv",
+                    mime="text/csv"
+                )
