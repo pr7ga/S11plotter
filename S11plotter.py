@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from io import StringIO
 
 st.title("Analisador de Antenas - S11 x Frequência")
 
@@ -8,9 +9,9 @@ st.title("Analisador de Antenas - S11 x Frequência")
 uploaded_file = st.file_uploader("Carregue um arquivo CSV", type=["csv"])
 
 if uploaded_file is not None:
-    # Pular cabeçalho até a linha "BEGIN"
-    with open(uploaded_file, "r", encoding="utf-8", errors="ignore") as f:
-        lines = f.readlines()
+    # Lê o conteúdo do arquivo em memória
+    content = uploaded_file.getvalue().decode("utf-8", errors="ignore")
+    lines = content.splitlines()
 
     # Encontrar a linha "BEGIN"
     begin_index = None
@@ -23,8 +24,7 @@ if uploaded_file is not None:
         st.error("Não foi encontrada a seção BEGIN no arquivo.")
     else:
         # Ler os dados após "BEGIN"
-        from io import StringIO
-        data_str = "".join(lines[begin_index:])
+        data_str = "\n".join(lines[begin_index:])
         df = pd.read_csv(StringIO(data_str), names=["Frequência (Hz)", "S11 (dB)"])
 
         # Controles da interface
