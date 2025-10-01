@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import StringIO
+import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 
@@ -33,7 +34,7 @@ if uploaded_file is not None:
         if df.empty:
             st.error("Não foi possível carregar dados numéricos válidos do arquivo.")
         else:
-            # Controles em uma única linha
+            # Controles em uma única linha usando st.columns
             col1, col2, col3, col4 = st.columns(4)
             with col1:
                 min_freq_mhz = st.number_input(
@@ -53,19 +54,13 @@ if uploaded_file is not None:
             titulo = st.text_input("Título do gráfico", value="S11 em função da Frequência")
 
             # Filtrar dados
-            df_filtrado = df[
-                (df["Frequência (Hz)"] >= min_freq_mhz*1e6) &
-                (df["Frequência (Hz)"] <= max_freq_mhz*1e6)
-            ]
-            df_filtrado = df_filtrado[
-                (df_filtrado["S11 (dB)"] >= min_s11) &
-                (df_filtrado["S11 (dB)"] <= max_s11)
-            ]
+            df_filtrado = df[(df["Frequência (Hz)"] >= min_freq_mhz*1e6) & (df["Frequência (Hz)"] <= max_freq_mhz*1e6)]
+            df_filtrado = df_filtrado[(df_filtrado["S11 (dB)"] >= min_s11) & (df_filtrado["S11 (dB)"] <= max_s11)]
 
             if df_filtrado.empty:
                 st.warning("Nenhum dado encontrado com os filtros aplicados.")
             else:
-                # Identificação das bandas S11 <= -10 dB
+                # Identificação das bandas
                 mask = df_filtrado["S11 (dB)"] <= -10
                 bandas = []
                 in_band = False
@@ -78,32 +73,61 @@ if uploaded_file is not None:
                     elif not mask.iloc[i] and in_band:
                         in_band = False
                         f_end = df_filtrado["Frequência (Hz)"].iloc[i-1]
-                        sub_df = df_filtrado[(df_filtrado["Frequência (Hz)"] >= f_start) & (df_filtrado["Frequência (Hz)"] <= f_end)]
+                        sub_df = df_filtrado[(df_filtrado["Frequência (Hz)"] >= f_start) &
+                                             (df_filtrado["Frequência (Hz)"] <= f_end)]
                         f_res = sub_df.loc[sub_df["S11 (dB)"].idxmin(), "Frequência (Hz)"]
                         bandas.append((f_start, f_end, f_res))
                 if in_band:
                     f_end = df_filtrado["Frequência (Hz)"].iloc[-1]
-                    sub_df = df_filtrado[(df_filtrado["Frequência (Hz)"] >= f_start) & (df_filtrado["Frequência (Hz)"] <= f_end)]
+                    sub_df = df_filtrado[(df_filtrado["Frequência (Hz)"] >= f_start) &
+                                         (df_filtrado["Frequência (Hz)"] <= f_end)]
                     f_res = sub_df.loc[sub_df["S11 (dB)"].idxmin(), "Frequência (Hz)"]
                     bandas.append((f_start, f_end, f_res))
 
                 # Gráfico
                 fig, ax = plt.subplots(figsize=(10, 6))
                 freq_mhz = df_filtrado["Frequência (Hz)"] / 1e6
-                ax.plot(freq_mhz, df_filtrado["S11 (dB)"], color="blue", lw=2)
-                ax.axhline(-10, color="black", lw=1, linestyle="--")
+                ax.plot(freq_mhz, df_filtrado["S11 (dB)"], label="S11")
+                ax.axhline(-10, color="black", linestyle="--", label="-10 dB")
 
-                # cores para as bandas
-                cores = ["red", "blue", "green", "orange", "cyan", "magenta", "yellow", "purple"]
+                # cores primárias fortes para cada banda
+                cores = ["red", "blue", "green", "yellow", "cyan", "magenta", "orange", "purple"]
 
-                # Legenda S11 e -10 dB
+                # Inserir sombreado e criar patches coloridos para legenda
+                textos_bandas = []
+                legendas_coloridas = []
+                for i, (f1, f2, f_res) in enumerate(bandas):
+                    cor = cores[i % len(cores)]
+                    bw_norm = (f2 - f1) / f_res * 100
+                    largura = (f2 - f1)/1e6
+                    ax.axvspan(f1/1e6, f2/1e6, color=cor, alpha=0.5)
+                    # Texto abaixo do eixo X
+                    texto = f"{bw_norm:.1f}% BW, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz"
+                    textos_bandas.append(texto)
+                    # Patch colorido para legenda
+                    patch = mpatches.Patch(color=cor, label=texto)
+                    legendas_coloridas.append(patch)
+
+                ax.set_xlabel("Frequência (MHz)")
+                ax.set_ylabel("S11 (dB)")
+                ax.set_title(titulo)
+                ax.set_ylim(min_s11, max_s11)
+                ax.grid(True)
+
+                # Legenda combinando linha S11, linha -10 dB e patches coloridos
+                # ax.legend(handles=[ax.get_lines()[0], ax.axhline(-10, color="black", linestyle="--")] + legendas_coloridas,
+                #          loc="upper right")
+
+
+
+                # Legenda apenas S11 e -10 dB com linha tracejada
                 legend_elements = [
                     Line2D([0], [0], color='blue', lw=2, label='S11'),
                     Line2D([0], [0], color='black', lw=1, linestyle='--', label='-10 dB')
                 ]
                 ax.legend(handles=legend_elements, loc='upper right')
-
-                # Inserir informações das bandas abaixo do eixo X com retângulos pequenos
+                
+                # Inserir informações das bandas abaixo do eixo X
                 y_start = -0.15
                 for idx, (f1, f2, f_res) in enumerate(bandas):
                     cor = cores[idx % len(cores)]
@@ -112,14 +136,16 @@ if uploaded_file is not None:
                     texto = f"{bw_norm:.1f}% BW, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz"
                     
                     # Desenhar retângulo pequeno ao lado do texto
-                    ax.text(0.03, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)
-                    ax.add_patch(Rectangle((0.01, y_start - idx*0.05 - 0.008), 0.015, 0.016, transform=ax.transAxes, color=cor))
+                    ax.text(0.02, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)
+                    ax.add_patch(Rectangle((0, y_start - idx*0.05 - 0.01), 0.015, 0.02, transform=ax.transAxes, color=cor))
 
-                ax.set_xlabel("Frequência (MHz)")
-                ax.set_ylabel("S11 (dB)")
-                ax.set_title(titulo)
-                ax.set_ylim(min_s11, max_s11)
-                ax.grid(True)
+
+
+                
+                # Inserir informações das bandas abaixo do eixo X
+                y_start = -0.15
+                for idx, texto in enumerate(textos_bandas):
+                    ax.text(0, y_start - idx*0.05, texto, fontsize=9, ha="left", va="top", transform=ax.transAxes)
 
                 st.pyplot(fig)
 
