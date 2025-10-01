@@ -140,23 +140,5 @@ if uploaded_file is not None:
                     ax.add_patch(Rectangle((0, y_start - idx*0.05 - 0.01), 0.015, 0.02, transform=ax.transAxes, color=cor))
 
 
-
-                
-                # Inserir informações das bandas abaixo do eixo X
-                y_start = -0.15
-                for idx, texto in enumerate(textos_bandas):
-                    ax.text(0, y_start - idx*0.05, texto, fontsize=9, ha="left", va="top", transform=ax.transAxes)
-
                 st.pyplot(fig)
 
-                # Tabela das bandas
-                if bandas:
-                    st.success("Faixas de ressonância encontradas:")
-                    for i, (f1, f2, f_res) in enumerate(bandas, start=1):
-                        bw_norm = (f2 - f1) / f_res * 100
-                        st.write(
-                            f"**Banda {i}:** {bw_norm:.1f}% BW "
-                            f"(de {f1/1e6:.3f} a {f2/1e6:.3f} MHz) | "
-                            f"Largura: {(f2-f1)/1e6:.2f} MHz | "
-                            f"Ressonância: {f_res/1e6:.3f} MHz"
-                        )
