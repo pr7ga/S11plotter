@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import StringIO
+import numpy as np
 
 st.title("Analisador de Antenas - S11 x Frequência")
 
@@ -30,7 +31,7 @@ if uploaded_file is not None:
         # Converte colunas para numérico e elimina linhas inválidas
         df["Frequência (Hz)"] = pd.to_numeric(df["Frequência (Hz)"], errors="coerce")
         df["S11 (dB)"] = pd.to_numeric(df["S11 (dB)"], errors="coerce")
-        df = df.dropna()
+        df = df.dropna().reset_index(drop=True)
 
         if df.empty:
             st.error("Não foi possível carregar dados numéricos válidos do arquivo.")
@@ -60,13 +61,31 @@ if uploaded_file is not None:
                 ax.grid(True)
                 st.pyplot(fig)
 
-                # Cálculo da largura de banda
-                df_band = df_filtrado[df_filtrado["S11 (dB)"] <= -10]
+                # Identificação de múltiplas bandas
+                mask = df_filtrado["S11 (dB)"] <= -10
+                bandas = []
+                in_band = False
+                f_start = None
 
-                if df_band.empty:
+                for i in range(len(df_filtrado)):
+                    if mask.iloc[i] and not in_band:
+                        # início de uma banda
+                        in_band = True
+                        f_start = df_filtrado["Frequência (Hz)"].iloc[i]
+                    elif not mask.iloc[i] and in_band:
+                        # fim da banda
+                        in_band = False
+                        f_end = df_filtrado["Frequência (Hz)"].iloc[i-1]
+                        bandas.append((f_start, f_end))
+                # Se terminou dentro de uma banda, fecha no último ponto
+                if in_band:
+                    f_end = df_filtrado["Frequência (Hz)"].iloc[-1]
+                    bandas.append((f_start, f_end))
+
+                if not bandas:
                     st.error("Não foi encontrada nenhuma faixa de frequência com S11 ≤ -10 dB.")
                 else:
-                    fmin = df_band["Frequência (Hz)"].min()
-                    fmax = df_band["Frequência (Hz)"].max()
-                    bw = fmax - fmin
-                    st.success(f"**Bandwidth:** {bw/1e6:.3f} MHz (de {fmin/1e6:.3f} MHz até {fmax/1e6:.3f} MHz)")
+                    st.success("Faixas de ressonância encontradas:")
+                    for i, (f1, f2) in enumerate(bandas, start=1):
+                        bw = f2 - f1
+                        st.write(f"**Banda {i}:** {bw/1e6:.3f} MHz (de {f1/1e6:.3f} MHz até {f2/1e6:.3f} MHz)")
