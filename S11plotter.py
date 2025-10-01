@@ -133,7 +133,7 @@ if uploaded_file is not None:
                     cor = cores[idx % len(cores)]
                     largura = (f2 - f1)/1e6
                     bw_norm = (f2 - f1) / f_res * 100
-                    texto = f"{bw_norm:.1f}% BW, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz"
+                    texto = f"Res: {f_res/1e6:.2f} MHz, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), {bw_norm:.1f}% BW"
                     
                     # Desenhar retângulo pequeno ao lado do texto
                     ax.text(0.02, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)
