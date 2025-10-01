@@ -69,29 +69,43 @@ if uploaded_file is not None:
                     bandas.append((f_start, f_end, f_res))
 
                 # Gráfico
-                fig, ax = plt.subplots()
-                ax.plot(df_filtrado["Frequência (Hz)"], df_filtrado["S11 (dB)"], label="S11")
+                fig, ax = plt.subplots(figsize=(10, 6))
+
+                # Plot em MHz
+                freq_mhz = df_filtrado["Frequência (Hz)"] / 1e6
+                ax.plot(freq_mhz, df_filtrado["S11 (dB)"], label="S11")
                 ax.axhline(-10, color="black", linestyle="--", label="-10 dB")
 
                 # cores primárias fortes para cada banda
                 cores = ["red", "blue", "green", "yellow", "cyan", "magenta", "orange", "purple"]
 
+                # Preparar textos da banda fora do gráfico
+                textos_bandas = []
                 for i, (f1, f2, f_res) in enumerate(bandas, start=1):
                     cor = cores[(i-1) % len(cores)]
                     bw_norm = (f2 - f1) / f_res * 100
                     largura = (f2 - f1)/1e6
-                    ax.axvspan(f1, f2, color=cor, alpha=0.5,
-                               label=(f"B{i}: {bw_norm:.1f}% BW | "
-                                      f"{largura:.2f} MHz "
-                                      f"({f1/1e6:.2f}-{f2/1e6:.2f} MHz) "
-                                      f"Res: {f_res/1e6:.2f} MHz"))
+                    ax.axvspan(f1/1e6, f2/1e6, color=cor, alpha=0.5)
+                    # montar string com menos casas decimais
+                    texto = (f"B{i}: {bw_norm:.1f}% BW, {largura:.2f} MHz "
+                             f"({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz")
+                    textos_bandas.append(texto)
 
-                ax.set_xlabel("Frequência (Hz)")
+                ax.set_xlabel("Frequência (MHz)")
                 ax.set_ylabel("S11 (dB)")
                 ax.set_title(titulo)
-                ax.set_ylim(min_s11, max_s11)  # escala do gráfico definida pelo usuário
-                ax.legend()
+                ax.set_ylim(min_s11, max_s11)
                 ax.grid(True)
+
+                # Legenda principal
+                ax.legend(loc="upper right")
+
+                # Inserir informações das bandas abaixo do eixo X
+                y_text = min_s11 - 0.05*(max_s11 - min_s11)  # pequena margem abaixo do eixo
+                for idx, texto in enumerate(textos_bandas):
+                    ax.text(0, y_text - idx*0.05*(max_s11 - min_s11), texto,
+                            fontsize=9, ha="left", va="top", transform=ax.get_xaxis_transform())
+
                 st.pyplot(fig)
 
                 # Tabela das bandas
@@ -100,7 +114,7 @@ if uploaded_file is not None:
                     for i, (f1, f2, f_res) in enumerate(bandas, start=1):
                         bw_norm = (f2 - f1) / f_res * 100
                         st.write(
-                            f"**Banda {i}:** {bw_norm:.2f}% BW "
+                            f"**Banda {i}:** {bw_norm:.1f}% BW "
                             f"(de {f1/1e6:.3f} a {f2/1e6:.3f} MHz) | "
                             f"Largura: {(f2-f1)/1e6:.2f} MHz | "
                             f"Ressonância: {f_res/1e6:.3f} MHz"
