@@ -112,22 +112,18 @@ if uploaded_file is not None:
                 ]
                 ax.legend(handles=legend_elements, loc='upper right')
                 
-                # Inserir informações das bandas abaixo do eixo X
-                y_start = -0.15
-                for idx, (f1, f2, f_res) in enumerate(bandas):
-                    cor = cores[idx % len(cores)]
-                    largura = (f2 - f1)/1e6
-                    bw_norm = (f2 - f1) / f_res * 100
-
-                    # Texto "Res:" com fundo colorido
-                    texto_res = f"Res: {f_res/1e6:.2f} MHz"
-                    ax.text(0.02, y_start - idx*0.05, texto_res, fontsize=9, ha="left", va="center",
-                            transform=ax.transAxes,
-                            bbox=dict(facecolor=cor, edgecolor='none', alpha=0.5, boxstyle='round,pad=0.2'))
-
-                    # Restante do texto sem fundo
-                    texto_restante = f", BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)"
-                    ax.text(0.02 + 0.12, y_start - idx*0.05, texto_restante, fontsize=9, ha="left", va="center",
-                            transform=ax.transAxes)
+                y_pos = y_start - idx*0.05
+                # "Res:" com fundo colorido
+                ax.text(0.02, y_pos, "Res:", fontsize=9, ha="left", va="center",
+                        transform=ax.transAxes,
+                        bbox=dict(facecolor=cor, edgecolor='none', alpha=0.5, boxstyle='round,pad=0.2'))
+                
+                # valor de ressonância sem fundo
+                ax.text(0.02 + 0.04, y_pos, f"{f_res/1e6:.2f} MHz", fontsize=9, ha="left", va="center",
+                        transform=ax.transAxes)
+                
+                # restante do texto sem fundo
+                ax.text(0.02 + 0.12, y_pos, f", BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)",
+                        fontsize=9, ha="left", va="center", transform=ax.transAxes)
 
                 st.pyplot(fig)
