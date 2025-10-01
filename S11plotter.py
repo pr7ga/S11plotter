@@ -86,7 +86,6 @@ if uploaded_file is not None:
                     bw_norm = (f2 - f1) / f_res * 100
                     largura = (f2 - f1)/1e6
                     ax.axvspan(f1/1e6, f2/1e6, color=cor, alpha=0.5)
-                    # montar string com menos casas decimais
                     texto = (f"B{i}: {bw_norm:.1f}% BW, {largura:.2f} MHz "
                              f"({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz")
                     textos_bandas.append(texto)
@@ -100,11 +99,10 @@ if uploaded_file is not None:
                 # Legenda principal
                 ax.legend(loc="upper right")
 
-                # Inserir informações das bandas abaixo do eixo X
-                y_text = min_s11 - 0.05*(max_s11 - min_s11)  # pequena margem abaixo do eixo
+                # Inserir informações das bandas próximo do eixo X (usando transAxes)
+                y_start = -0.15  # posição relativa abaixo do eixo X
                 for idx, texto in enumerate(textos_bandas):
-                    ax.text(0, y_text - idx*0.05*(max_s11 - min_s11), texto,
-                            fontsize=9, ha="left", va="top", transform=ax.get_xaxis_transform())
+                    ax.text(0, y_start - idx*0.05, texto, fontsize=9, ha="left", va="top", transform=ax.transAxes)
 
                 st.pyplot(fig)
 
