@@ -133,11 +133,9 @@ if uploaded_file is not None:
                     cor = cores[idx % len(cores)]
                     largura = (f2 - f1)/1e6
                     bw_norm = (f2 - f1) / f_res * 100
-                    texto = f"Res: {f_res/1e6:.2f} MHz, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), {bw_norm:.1f}% BW"
+                    texto = f"Res: {f_res/1e6:.2f} MHz, BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)"
                     
-                    # Desenhar retângulo pequeno ao lado do texto
-                    ax.text(0.02, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)
-                    ax.add_patch(Rectangle((0, y_start - idx*0.05 - 0.01), 0.015, 0.02, transform=ax.transAxes, color=cor))
+                    
 
 
                 st.pyplot(fig)
