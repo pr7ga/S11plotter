@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from io import StringIO
 import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
-from matplotlib.patches import Rectangle
 
 st.title("Analisador de Antenas - S11 x Frequência")
 
@@ -54,8 +53,10 @@ if uploaded_file is not None:
             titulo = st.text_input("Título do gráfico", value="S11 em função da Frequência")
 
             # Filtrar dados
-            df_filtrado = df[(df["Frequência (Hz)"] >= min_freq_mhz*1e6) & (df["Frequência (Hz)"] <= max_freq_mhz*1e6)]
-            df_filtrado = df_filtrado[(df_filtrado["S11 (dB)"] >= min_s11) & (df_filtrado["S11 (dB)"] <= max_s11)]
+            df_filtrado = df[(df["Frequência (Hz)"] >= min_freq_mhz*1e6) & 
+                             (df["Frequência (Hz)"] <= max_freq_mhz*1e6)]
+            df_filtrado = df_filtrado[(df_filtrado["S11 (dB)"] >= min_s11) & 
+                                      (df_filtrado["S11 (dB)"] <= max_s11)]
 
             if df_filtrado.empty:
                 st.warning("Nenhum dado encontrado com os filtros aplicados.")
@@ -93,32 +94,16 @@ if uploaded_file is not None:
                 # cores primárias fortes para cada banda
                 cores = ["red", "blue", "green", "yellow", "cyan", "magenta", "orange", "purple"]
 
-                # Inserir sombreado e criar patches coloridos para legenda
-                textos_bandas = []
-                legendas_coloridas = []
+                # Inserir sombreado
                 for i, (f1, f2, f_res) in enumerate(bandas):
                     cor = cores[i % len(cores)]
-                    bw_norm = (f2 - f1) / f_res * 100
-                    largura = (f2 - f1)/1e6
                     ax.axvspan(f1/1e6, f2/1e6, color=cor, alpha=0.5)
-                    # Texto abaixo do eixo X
-                    texto = f"{bw_norm:.1f}% BW, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz"
-                    textos_bandas.append(texto)
-                    # Patch colorido para legenda
-                    patch = mpatches.Patch(color=cor, label=texto)
-                    legendas_coloridas.append(patch)
 
                 ax.set_xlabel("Frequência (MHz)")
                 ax.set_ylabel("S11 (dB)")
                 ax.set_title(titulo)
                 ax.set_ylim(min_s11, max_s11)
                 ax.grid(True)
-
-                # Legenda combinando linha S11, linha -10 dB e patches coloridos
-                # ax.legend(handles=[ax.get_lines()[0], ax.axhline(-10, color="black", linestyle="--")] + legendas_coloridas,
-                #          loc="upper right")
-
-
 
                 # Legenda apenas S11 e -10 dB com linha tracejada
                 legend_elements = [
@@ -133,11 +118,16 @@ if uploaded_file is not None:
                     cor = cores[idx % len(cores)]
                     largura = (f2 - f1)/1e6
                     bw_norm = (f2 - f1) / f_res * 100
-                    texto = f"Res: {f_res/1e6:.2f} MHz, BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)"
-                    
-                 # Desenhar retângulo pequeno ao lado do texto
-                    ax.text(0.02, y_start - idx*0.05, texto, fontsize=9, ha="left", va="center", transform=ax.transAxes)   
 
+                    # Texto "Res:" com fundo colorido
+                    texto_res = f"Res: {f_res/1e6:.2f} MHz"
+                    ax.text(0.02, y_start - idx*0.05, texto_res, fontsize=9, ha="left", va="center",
+                            transform=ax.transAxes,
+                            bbox=dict(facecolor=cor, edgecolor='none', alpha=0.5, boxstyle='round,pad=0.2'))
+
+                    # Restante do texto sem fundo
+                    texto_restante = f", BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)"
+                    ax.text(0.02 + 0.12, y_start - idx*0.05, texto_restante, fontsize=9, ha="left", va="center",
+                            transform=ax.transAxes)
 
                 st.pyplot(fig)
-
