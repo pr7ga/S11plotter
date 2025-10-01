@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import StringIO
-import matplotlib.cm as cm
-import numpy as np
 
 st.title("Analisador de Antenas - S11 x Frequência")
 
@@ -73,14 +71,20 @@ if uploaded_file is not None:
                 # Gráfico
                 fig, ax = plt.subplots()
                 ax.plot(df_filtrado["Frequência (Hz)"], df_filtrado["S11 (dB)"], label="S11")
-                ax.axhline(-10, color="red", linestyle="--", label="-10 dB")
+                ax.axhline(-10, color="black", linestyle="--", label="-10 dB")
 
-                # cores diferentes para cada banda
-                colors = cm.get_cmap('tab10', len(bandas))
+                # cores primárias fortes para cada banda
+                cores = ["red", "blue", "green", "yellow", "cyan", "magenta", "orange", "purple"]
 
                 for i, (f1, f2, f_res) in enumerate(bandas, start=1):
-                    ax.axvspan(f1, f2, color=colors(i-1), alpha=0.3,
-                               label=f"B{i}: {((f2-f1)/f_res)*100:.1f}% BW")
+                    cor = cores[(i-1) % len(cores)]
+                    bw_norm = (f2 - f1) / f_res * 100
+                    largura = (f2 - f1)/1e6
+                    ax.axvspan(f1, f2, color=cor, alpha=0.5,
+                               label=(f"B{i}: {bw_norm:.1f}% BW | "
+                                      f"{largura:.2f} MHz "
+                                      f"({f1/1e6:.2f}-{f2/1e6:.2f} MHz) "
+                                      f"Res: {f_res/1e6:.2f} MHz"))
 
                 ax.set_xlabel("Frequência (Hz)")
                 ax.set_ylabel("S11 (dB)")
@@ -97,5 +101,6 @@ if uploaded_file is not None:
                         st.write(
                             f"**Banda {i}:** {bw_norm:.2f}% BW "
                             f"(de {f1/1e6:.3f} a {f2/1e6:.3f} MHz) | "
+                            f"Largura: {(f2-f1)/1e6:.2f} MHz | "
                             f"Ressonância: {f_res/1e6:.3f} MHz"
                         )
