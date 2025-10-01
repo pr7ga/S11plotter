@@ -115,7 +115,7 @@ if uploaded_file is not None:
                             transform=ax.transAxes)
 
                     # restante do texto sem fundo
-                    ax.text(0.02, y_pos,
+                    ax.text(0.05, y_pos,
                             f"Res: {f_res/1e6:.2f} MHz, BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)",
                             fontsize=9, ha="left", va="center", transform=ax.transAxes)
 
