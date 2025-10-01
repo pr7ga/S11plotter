@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import StringIO
-import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 
 st.title("Analisador de Antenas - S11 x Frequência")
@@ -88,16 +87,37 @@ if uploaded_file is not None:
                 # Gráfico
                 fig, ax = plt.subplots(figsize=(10, 6))
                 freq_mhz = df_filtrado["Frequência (Hz)"] / 1e6
-                ax.plot(freq_mhz, df_filtrado["S11 (dB)"], label="S11")
-                ax.axhline(-10, color="black", linestyle="--", label="-10 dB")
+                ax.plot(freq_mhz, df_filtrado["S11 (dB)"], color="blue", lw=2, label="S11")
+                ax.axhline(-10, color="black", linestyle="--", lw=1, label="-10 dB")
 
                 # cores primárias fortes para cada banda
                 cores = ["red", "blue", "green", "yellow", "cyan", "magenta", "orange", "purple"]
 
-                # Inserir sombreado
-                for i, (f1, f2, f_res) in enumerate(bandas):
-                    cor = cores[i % len(cores)]
+                # Inserir sombreado e informações das bandas
+                y_start = -0.15
+                for idx, (f1, f2, f_res) in enumerate(bandas):
+                    cor = cores[idx % len(cores)]
                     ax.axvspan(f1/1e6, f2/1e6, color=cor, alpha=0.5)
+
+                    # Cálculo da largura e BW%
+                    largura = (f2 - f1)/1e6
+                    bw_norm = (f2 - f1) / f_res * 100
+
+                    y_pos = y_start - idx*0.05
+
+                    # "Res:" com fundo colorido
+                    ax.text(0.02, y_pos, "Res:", fontsize=9, ha="left", va="center",
+                            transform=ax.transAxes,
+                            bbox=dict(facecolor=cor, edgecolor='none', alpha=0.5, boxstyle='round,pad=0.2'))
+
+                    # valor de ressonância sem fundo
+                    ax.text(0.02 + 0.04, y_pos, f"{f_res/1e6:.2f} MHz", fontsize=9, ha="left", va="center",
+                            transform=ax.transAxes)
+
+                    # restante do texto sem fundo
+                    ax.text(0.02 + 0.12, y_pos,
+                            f", BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)",
+                            fontsize=9, ha="left", va="center", transform=ax.transAxes)
 
                 ax.set_xlabel("Frequência (MHz)")
                 ax.set_ylabel("S11 (dB)")
@@ -105,25 +125,11 @@ if uploaded_file is not None:
                 ax.set_ylim(min_s11, max_s11)
                 ax.grid(True)
 
-                # Legenda apenas S11 e -10 dB com linha tracejada
+                # Legenda apenas S11 e -10 dB
                 legend_elements = [
                     Line2D([0], [0], color='blue', lw=2, label='S11'),
                     Line2D([0], [0], color='black', lw=1, linestyle='--', label='-10 dB')
                 ]
                 ax.legend(handles=legend_elements, loc='upper right')
-                
-                y_pos = y_start - idx*0.05
-                # "Res:" com fundo colorido
-                ax.text(0.02, y_pos, "Res:", fontsize=9, ha="left", va="center",
-                        transform=ax.transAxes,
-                        bbox=dict(facecolor=cor, edgecolor='none', alpha=0.5, boxstyle='round,pad=0.2'))
-                
-                # valor de ressonância sem fundo
-                ax.text(0.02 + 0.04, y_pos, f"{f_res/1e6:.2f} MHz", fontsize=9, ha="left", va="center",
-                        transform=ax.transAxes)
-                
-                # restante do texto sem fundo
-                ax.text(0.02 + 0.12, y_pos, f", BW: {largura:.1f} MHz ({f1/1e6:.1f}-{f2/1e6:.1f} MHz, {bw_norm:.1f}%)",
-                        fontsize=9, ha="left", va="center", transform=ax.transAxes)
 
                 st.pyplot(fig)
