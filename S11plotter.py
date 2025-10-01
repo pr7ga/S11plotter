@@ -89,22 +89,21 @@ if uploaded_file is not None:
                 # cores para as bandas
                 cores = ["red", "blue", "green", "yellow", "cyan", "magenta", "orange", "purple"]
 
-                # Patches para legenda e textos
-                legendas_coloridas = []
-                y_start = -0.15
+                # Legenda apenas S11 e -10 dB
+                ax.legend(handles=[ax.get_lines()[0], mpatches.Patch(color="black", label="-10 dB")],
+                          loc="upper right")
 
+                # Inserir informações das bandas abaixo do eixo X
+                y_start = -0.15
                 for idx, (f1, f2, f_res) in enumerate(bandas):
                     cor = cores[idx % len(cores)]
                     largura = (f2 - f1)/1e6
                     bw_norm = (f2 - f1) / f_res * 100
-                    ax.axvspan(f1/1e6, f2/1e6, color=cor, alpha=0.5)
-                    # Texto abaixo do eixo X
                     texto = f"{bw_norm:.1f}% BW, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz"
-                    ax.text(0, y_start - idx*0.05, "  " + texto, fontsize=9, ha="left", va="top", transform=ax.transAxes,
+                    # Retângulo colorido junto do texto
+                    ax.text(0, y_start - idx*0.05, "  " + texto, fontsize=9, ha="left", va="top",
+                            transform=ax.transAxes,
                             bbox=dict(facecolor=cor, edgecolor=cor, boxstyle="square,pad=0.2"))
-                    # Patch para legenda (opcional)
-                    patch = mpatches.Patch(color=cor, label=texto)
-                    legendas_coloridas.append(patch)
 
                 ax.set_xlabel("Frequência (MHz)")
                 ax.set_ylabel("S11 (dB)")
@@ -112,20 +111,4 @@ if uploaded_file is not None:
                 ax.set_ylim(min_s11, max_s11)
                 ax.grid(True)
 
-                # Legenda combinada
-                ax.legend(handles=[ax.get_lines()[0], mpatches.Patch(color="black", label="-10 dB")] + legendas_coloridas,
-                          loc="upper right")
-
                 st.pyplot(fig)
-
-                # Tabela das bandas
-                if bandas:
-                    st.success("Faixas de ressonância encontradas:")
-                    for i, (f1, f2, f_res) in enumerate(bandas, start=1):
-                        bw_norm = (f2 - f1) / f_res * 100
-                        st.write(
-                            f"**Banda {i}:** {bw_norm:.1f}% BW "
-                            f"(de {f1/1e6:.3f} a {f2/1e6:.3f} MHz) | "
-                            f"Largura: {(f2-f1)/1e6:.2f} MHz | "
-                            f"Ressonância: {f_res/1e6:.3f} MHz"
-                        )
