@@ -128,6 +128,6 @@ if uploaded_file is not None:
                     Line2D([0], [0], color='blue', lw=2, label='S11'),
                     Line2D([0], [0], color='black', lw=1, linestyle='--', label='-10 dB')
                 ]
-                ax.legend(handles=legend_elements, loc='upper right')
+                ax.legend(handles=legend_elements, loc='lower right')
 
                 st.pyplot(fig)
