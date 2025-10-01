@@ -32,7 +32,7 @@ if uploaded_file is not None:
         if df.empty:
             st.error("Não foi possível carregar dados numéricos válidos do arquivo.")
         else:
-            # Controles em uma única linha usando st.columns
+            # Controles em uma única linha
             col1, col2, col3, col4 = st.columns(4)
             with col1:
                 min_freq_mhz = st.number_input(
@@ -58,7 +58,7 @@ if uploaded_file is not None:
             if df_filtrado.empty:
                 st.warning("Nenhum dado encontrado com os filtros aplicados.")
             else:
-                # Identificação das bandas
+                # Identificação das bandas S11 <= -10 dB
                 mask = df_filtrado["S11 (dB)"] <= -10
                 bandas = []
                 in_band = False
@@ -71,14 +71,12 @@ if uploaded_file is not None:
                     elif not mask.iloc[i] and in_band:
                         in_band = False
                         f_end = df_filtrado["Frequência (Hz)"].iloc[i-1]
-                        sub_df = df_filtrado[(df_filtrado["Frequência (Hz)"] >= f_start) &
-                                             (df_filtrado["Frequência (Hz)"] <= f_end)]
+                        sub_df = df_filtrado[(df_filtrado["Frequência (Hz)"] >= f_start) & (df_filtrado["Frequência (Hz)"] <= f_end)]
                         f_res = sub_df.loc[sub_df["S11 (dB)"].idxmin(), "Frequência (Hz)"]
                         bandas.append((f_start, f_end, f_res))
                 if in_band:
                     f_end = df_filtrado["Frequência (Hz)"].iloc[-1]
-                    sub_df = df_filtrado[(df_filtrado["Frequência (Hz)"] >= f_start) &
-                                         (df_filtrado["Frequência (Hz)"] <= f_end)]
+                    sub_df = df_filtrado[(df_filtrado["Frequência (Hz)"] >= f_start) & (df_filtrado["Frequência (Hz)"] <= f_end)]
                     f_res = sub_df.loc[sub_df["S11 (dB)"].idxmin(), "Frequência (Hz)"]
                     bandas.append((f_start, f_end, f_res))
 
@@ -88,21 +86,23 @@ if uploaded_file is not None:
                 ax.plot(freq_mhz, df_filtrado["S11 (dB)"], label="S11")
                 ax.axhline(-10, color="black", linestyle="--", label="-10 dB")
 
-                # cores primárias fortes para cada banda
+                # cores para as bandas
                 cores = ["red", "blue", "green", "yellow", "cyan", "magenta", "orange", "purple"]
 
-                # Inserir sombreado e criar patches coloridos para legenda
-                textos_bandas = []
+                # Patches para legenda e textos
                 legendas_coloridas = []
-                for i, (f1, f2, f_res) in enumerate(bandas):
-                    cor = cores[i % len(cores)]
-                    bw_norm = (f2 - f1) / f_res * 100
+                y_start = -0.15
+
+                for idx, (f1, f2, f_res) in enumerate(bandas):
+                    cor = cores[idx % len(cores)]
                     largura = (f2 - f1)/1e6
+                    bw_norm = (f2 - f1) / f_res * 100
                     ax.axvspan(f1/1e6, f2/1e6, color=cor, alpha=0.5)
                     # Texto abaixo do eixo X
                     texto = f"{bw_norm:.1f}% BW, {largura:.2f} MHz ({f1/1e6:.2f}-{f2/1e6:.2f} MHz), Res: {f_res/1e6:.2f} MHz"
-                    textos_bandas.append(texto)
-                    # Patch colorido para legenda
+                    ax.text(0, y_start - idx*0.05, "  " + texto, fontsize=9, ha="left", va="top", transform=ax.transAxes,
+                            bbox=dict(facecolor=cor, edgecolor=cor, boxstyle="square,pad=0.2"))
+                    # Patch para legenda (opcional)
                     patch = mpatches.Patch(color=cor, label=texto)
                     legendas_coloridas.append(patch)
 
@@ -112,14 +112,9 @@ if uploaded_file is not None:
                 ax.set_ylim(min_s11, max_s11)
                 ax.grid(True)
 
-                # Legenda combinando linha S11, linha -10 dB e patches coloridos
-                ax.legend(handles=[ax.get_lines()[0], ax.axhline(-10, color="black", linestyle="--")] + legendas_coloridas,
+                # Legenda combinada
+                ax.legend(handles=[ax.get_lines()[0], mpatches.Patch(color="black", label="-10 dB")] + legendas_coloridas,
                           loc="upper right")
-
-                # Inserir informações das bandas abaixo do eixo X
-                y_start = -0.15
-                for idx, texto in enumerate(textos_bandas):
-                    ax.text(0, y_start - idx*0.05, texto, fontsize=9, ha="left", va="top", transform=ax.transAxes)
 
                 st.pyplot(fig)
 
