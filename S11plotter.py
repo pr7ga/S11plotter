@@ -89,6 +89,7 @@ if uploaded_file is not None:
                 ax.set_xlabel("Frequência (Hz)")
                 ax.set_ylabel("S11 (dB)")
                 ax.set_title(titulo)
+                ax.set_ylim(min_s11, max_s11)  # escala do gráfico definida pelo usuário
                 ax.legend()
                 ax.grid(True)
                 st.pyplot(fig)
